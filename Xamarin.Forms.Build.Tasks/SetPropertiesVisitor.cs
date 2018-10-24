@@ -151,7 +151,7 @@ namespace Xamarin.Forms.Build.Tasks
 
 					Context.IL.Emit(Ldloc, parentVar);
 					Context.IL.Emit(Ldloc, vardef);
-					Context.IL.Emit(Callvirt, adderRef);
+					Context.IL.Emit(adderRef.IsVirtual ? Callvirt : Call, adderRef);
 					if (adderRef.ReturnType.FullName != "System.Void")
 						Context.IL.Emit(Pop);
 				}
