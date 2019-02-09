@@ -38,6 +38,13 @@ namespace Xamarin.Forms.Xaml
 {
 	abstract class MarkupExpressionParser
 	{
+		protected struct Property
+		{
+			public string name;
+			public string strValue;
+			public object value;
+		}
+
 		public object ParseExpression(ref string expression, IServiceProvider serviceProvider)
 		{
 			if (serviceProvider == null)
@@ -112,7 +119,7 @@ namespace Xamarin.Forms.Xaml
 			return true;
 		}
 
-		protected void HandleProperty(string prop, IServiceProvider serviceProvider, ref string remaining, bool isImplicit)
+		protected Property ParseProperty(string prop, IServiceProvider serviceProvider, ref string remaining, bool isImplicit)
 		{
 			char next;
 			object value = null;
@@ -120,8 +127,7 @@ namespace Xamarin.Forms.Xaml
 
 			if (isImplicit)
 			{
-				SetPropertyValue(null, prop, null, serviceProvider);
-				return;
+				return new Property { name = null, strValue = prop, value = null };
 			}
 			remaining = remaining.TrimStart();
 			if (remaining.StartsWith("{", StringComparison.Ordinal))
@@ -139,10 +145,8 @@ namespace Xamarin.Forms.Xaml
 			else
 				str_value = GetNextPiece(ref remaining, out next);
 
-			SetPropertyValue(prop, str_value, value, serviceProvider);
+			return new Property { name = prop, strValue = str_value, value = value };
 		}
-
-		protected abstract void SetPropertyValue(string prop, string strValue, object value, IServiceProvider serviceProvider);
 
 		protected string GetNextPiece(ref string remaining, out char next)
 		{
@@ -224,6 +228,16 @@ namespace Xamarin.Forms.Xaml
 			}
 
 			return piece.ToString();
+		}
+
+		protected static (string, string) ParseName(string name)
+		{
+			var split = name.Split(':');
+
+			if (split.Length > 2)
+				throw new ArgumentException();
+
+			return split.Length == 2 ? (split[0], split[1]) : ("", split[0]);
 		}
 	}
 }
