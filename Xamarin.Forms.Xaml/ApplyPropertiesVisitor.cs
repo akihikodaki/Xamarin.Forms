@@ -409,7 +409,7 @@ namespace Xamarin.Forms.Xaml
 			foreach (var mi in rootElement.GetType().GetRuntimeMethods()) {
 				if (mi.Name == (string)value) {
 					try {
-						eventInfo.AddEventHandler(element, mi.CreateDelegate(eventInfo.EventHandlerType, rootElement));
+						eventInfo.AddEventHandler(element, mi.CreateDelegate(eventInfo.EventHandlerType, mi.IsStatic ? null : rootElement));
 						return true;
 					} catch (ArgumentException) {
 						// incorrect method signature
