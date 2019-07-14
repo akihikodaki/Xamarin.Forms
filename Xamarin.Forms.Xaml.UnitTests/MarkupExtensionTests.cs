@@ -83,6 +83,17 @@ namespace Xamarin.Forms.Xaml.UnitTests
 		}
 	}
 
+	[ContentProperty(nameof(WithContentPropertyExtension.Content))]
+	public class WithContentPropertyExtension : IMarkupExtension
+	{
+		public string Content { get; set; }
+
+		public object ProvideValue (IServiceProvider serviceProvider)
+		{
+			return Content;
+		}
+	}
+
 	[TestFixture]
 	public class MarkupExtensionTests : BaseTestFixture
 	{
@@ -123,6 +134,19 @@ namespace Xamarin.Forms.Xaml.UnitTests
 
 			Assert.That (result, Is.InstanceOf<string> ());
 			Assert.AreEqual ("FooBar", result);
+		}
+
+		[Test]
+		public void TestExtensionInPositionalArgument ()
+		{
+			var markupString = "{local:WithContentPropertyExtension {local:FooMarkupExtension}}";
+			var serviceProvider = new Internals.XamlServiceProvider (null, null) {
+				IXamlTypeResolver = typeResolver,
+			};
+			var result = (new MarkupExtensionParser ()).ParseExpression (ref markupString, serviceProvider);
+
+			Assert.That (result, Is.InstanceOf<string> ());
+			Assert.AreEqual ("Foo", result);
 		}
 
 		[Test]

@@ -162,20 +162,27 @@ namespace Xamarin.Forms.Build.Tasks
 				}
 				else
 				{
+					Argument parsed;
 					char next;
-					string piece;
-					while ((piece = GetNextPiece(ref remaining, out next)) != null)
+					string propertyStrName = null;
+					while (TryParseArgument(serviceProvider, ref remaining, out parsed, out next))
 					{
-						var parsed = ParseProperty(piece, serviceProvider, ref remaining, next != '=');
+						if (next == '=')
+						{
+							propertyStrName = parsed.strValue;
+							continue;
+						}
+
 						XmlName childname;
 
-						if (parsed.name == null)
+						if (propertyStrName == null)
 						{
 							childname = contentname;
 						}
 						else
 						{
-							var (propertyPrefix, propertyName) = ParseName(parsed.name);
+							var (propertyPrefix, propertyName) = ParseName(propertyStrName);
+							propertyStrName = null;
 
 							childname = XamlParser.ParsePropertyName(new XmlName(
 								propertyPrefix == "" ? "" : nsResolver.LookupNamespace(propertyPrefix),

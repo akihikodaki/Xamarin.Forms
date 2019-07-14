@@ -38,9 +38,8 @@ namespace Xamarin.Forms.Xaml
 {
 	abstract class MarkupExpressionParser
 	{
-		protected struct Property
+		protected struct Argument
 		{
-			public string name;
 			public string strValue;
 			public object value;
 		}
@@ -119,36 +118,37 @@ namespace Xamarin.Forms.Xaml
 			return true;
 		}
 
-		protected Property ParseProperty(string prop, IServiceProvider serviceProvider, ref string remaining, bool isImplicit)
+		protected bool TryParseArgument(IServiceProvider serviceProvider, ref string remaining, out Argument argument, out char next)
 		{
-			char next;
-			object value = null;
-			string str_value;
-
-			if (isImplicit)
-			{
-				return new Property { name = null, strValue = prop, value = null };
-			}
 			remaining = remaining.TrimStart();
 			if (remaining.StartsWith("{", StringComparison.Ordinal))
 			{
-				value = ParseExpression(ref remaining, serviceProvider);
+				var value = ParseExpression(ref remaining, serviceProvider);
 				remaining = remaining.TrimStart();
 
-				if (remaining.Length > 0 && remaining[0] == ',')
+				if (remaining.Length > 0 && remaining[0] == ',') {
+					next = remaining[0];
 					remaining = remaining.Substring(1);
-				else if (remaining.Length > 0 && remaining[0] == '}')
+				} else if (remaining.Length > 0 && remaining[0] == '}') {
+					next = remaining[0];
 					remaining = remaining.Substring(1);
+				} else {
+					next = Char.MaxValue;
+				}
 
-				str_value = value as string;
+				argument.strValue = value as string;
+				argument.value = value;
+
+				return true;
 			}
-			else
-				str_value = GetNextPiece(ref remaining, out next);
 
-			return new Property { name = prop, strValue = str_value, value = value };
+			argument.strValue = GetNextPiece(ref remaining, out next);
+			argument.value = null;
+
+			return argument.strValue != null;
 		}
 
-		protected string GetNextPiece(ref string remaining, out char next)
+		private string GetNextPiece(ref string remaining, out char next)
 		{
 			bool inString = false;
 			int end = 0;

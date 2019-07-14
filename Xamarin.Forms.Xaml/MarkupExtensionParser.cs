@@ -42,10 +42,15 @@ namespace Xamarin.Forms.Xaml
 			if (remaining == "}")
 				return markupExtension.ProvideValue(serviceProvider);
 
-			string piece;
-			while ((piece = GetNextPiece(ref remaining, out char next)) != null) {
-				var value = ParseProperty(piece, serviceProvider, ref remaining, next != '=');
-				SetPropertyValue(value.name, value.strValue, value.value, serviceProvider);
+			string name = null;
+			while (TryParseArgument(serviceProvider, ref remaining, out Argument value, out char next)) {
+				if (next == '=') {
+					name = value.strValue;
+				}
+				else {
+					SetPropertyValue(name, value.strValue, value.value, serviceProvider);
+					name = null;
+				}
 			}
 
 			return markupExtension.ProvideValue(serviceProvider);
